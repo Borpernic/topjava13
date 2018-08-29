@@ -75,10 +75,9 @@ public class MealRestController {
                 startDate != null ? startDate : DateTimeUtil.MIN_DATE,
                 endDate != null ? endDate : DateTimeUtil.MAX_DATE, userId);
 
-        return MealsUtil.getFilteredWithExceeded(mealsDateFiltered,
+        return MealsUtil.getFilteredWithExceeded(mealsDateFiltered, AuthorizedUser.getCaloriesPerDay(),
                 startTime != null ? startTime : LocalTime.MIN,
-                endTime != null ? endTime : LocalTime.MAX,
-                AuthorizedUser.getCaloriesPerDay()
-        );
+                endTime != null ? endTime : LocalTime.MAX
+                );
     }
 }
