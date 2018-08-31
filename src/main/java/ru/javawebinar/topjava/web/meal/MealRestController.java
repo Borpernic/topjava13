@@ -19,7 +19,12 @@ import static ru.javawebinar.topjava.util.Util.orElse;
 import static ru.javawebinar.topjava.util.ValidationUtil.assureIdConsistent;
 import static ru.javawebinar.topjava.util.ValidationUtil.checkNew;
 
-@Controller
+import java.net.URI;
+import java.time.LocalDateTime;
+import java.util.List;
+
+@RestController
+@RequestMapping(value = MealRestController.REST_URL, produces = MediaType.APPLICATION_JSON_VALUE)
 public class MealRestController {
     private static final Logger log = LoggerFactory.getLogger(MealRestController.class);
 
