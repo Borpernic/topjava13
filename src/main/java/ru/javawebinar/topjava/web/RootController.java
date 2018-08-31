@@ -74,4 +74,21 @@ public class RootController extends AbstractUserController {
             return "redirect:login?message=app.registered&username=" + userTo.getEmail();
         }
     }
+
+    @GetMapping("/profile")
+    public String profile() {
+        return "profile";
+    }
+
+    @PostMapping("/profile")
+    public String updateProfile(@Valid UserTo userTo, BindingResult result, SessionStatus status) {
+        if (result.hasErrors()) {
+            return "profile";
+        } else {
+            super.update(userTo, AuthorizedUser.id());
+            AuthorizedUser.get().update(userTo);
+            status.setComplete();
+            return "redirect:meals";
+        }
+    }
 }
