@@ -8,4 +8,13 @@ public class View {
 
     // Validate only when DB save/update
     public interface Persist extends Default {}
+
+    public class JsonREST {
+    }
+
+    public class ValidatedUI {
+    }
+
+    public class JsonUI {
+    }
 }
