@@ -1,6 +1,8 @@
 package ru.javawebinar.topjava.web;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.validation.BindingResult;
@@ -13,6 +15,8 @@ import ru.javawebinar.topjava.util.UserUtil;
 import ru.javawebinar.topjava.web.user.AbstractUserController;
 
 import javax.validation.Valid;
+
+import static ru.javawebinar.topjava.web.ExceptionInfoHandler.EXCEPTION_DUPLICATE_EMAIL;
 
 @Controller
 public class RootController extends AbstractUserController {
@@ -40,19 +44,24 @@ public class RootController extends AbstractUserController {
     }
 
     @GetMapping("/profile")
-    public String profile() {
+    public String profile(ModelMap model, @AuthenticationPrincipal AuthorizedUser authorizedUser) {
+        model.addAttribute("userTo", authorizedUser.getUserTo());
         return "profile";
     }
 
     @PostMapping("/profile")
-    public String updateProfile(@Valid UserTo userTo, BindingResult result, SessionStatus status) {
+    public String updateProfile(@Valid UserTo userTo, BindingResult result, SessionStatus status, @AuthenticationPrincipal AuthorizedUser authorizedUser) {
         if (result.hasErrors()) {
             return "profile";
-        } else {
-            super.update(userTo, AuthorizedUser.id());
-            AuthorizedUser.get().update(userTo);
+        }
+        try {
+            super.update(userTo, authorizedUser.getId());
+            authorizedUser.update(userTo);
             status.setComplete();
             return "redirect:meals";
+        } catch (DataIntegrityViolationException ex) {
+            result.rejectValue("email", EXCEPTION_DUPLICATE_EMAIL);
+            return "profile";
         }
     }
 
@@ -68,46 +77,15 @@ public class RootController extends AbstractUserController {
         if (result.hasErrors()) {
             model.addAttribute("register", true);
             return "profile";
-        } else {
+        }
+        try {
             super.create(UserUtil.createNewFromTo(userTo));
             status.setComplete();
             return "redirect:login?message=app.registered&username=" + userTo.getEmail();
-        }
-    }
-
-    @GetMapping("/profile")
-    public String profile() {
-        return "profile";
-    }
-
-    @PostMapping("/profile")
-    public String updateProfile(@Valid UserTo userTo, BindingResult result, SessionStatus status) {
-        if (result.hasErrors()) {
-            return "profile";
-        } else {
-            super.update(userTo, AuthorizedUser.id());
-            AuthorizedUser.get().update(userTo);
-            status.setComplete();
-            return "redirect:meals";
-        }
-    }
-
-    @GetMapping("/register")
-    public String register(ModelMap model) {
-        model.addAttribute("userTo", new UserTo());
-        model.addAttribute("register", true);
-        return "profile";
-    }
-
-    @PostMapping("/register")
-    public String saveRegister(@Valid UserTo userTo, BindingResult result, SessionStatus status, ModelMap model) {
-        if (result.hasErrors()) {
+        } catch (DataIntegrityViolationException ex) {
+            result.rejectValue("email", EXCEPTION_DUPLICATE_EMAIL);
             model.addAttribute("register", true);
             return "profile";
-        } else {
-            super.create(UserUtil.createNewFromTo(userTo));
-            status.setComplete();
-            return "redirect:login?message=app.registered&username=" + userTo.getEmail();
         }
     }
 }
